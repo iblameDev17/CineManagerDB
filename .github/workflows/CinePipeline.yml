@@ -2,15 +2,15 @@ name: ShowSecure DevSecOps Pipeline
 
 on:
   push:
-    branches: [ "master", "develop" ] # Updated to 'master' to match your screenshot 
+    branches: [ "master", "develop" ]
   pull_request:
-    branches: [ "master", "develop" ] # 
+    branches: [ "master", "develop" ]
 
 jobs:
   pipeline:
-    runs-on: ubuntu-latest
+    # CRITICAL: ubuntu-latest (24.04) does not support Python 3.6. Use 20.04.
+    runs-on: ubuntu-20.04 
     
-    # These secrets are pulled from your GitHub Repo Settings
     env:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       FLASK_SECRET: ${{ secrets.FLASK_SECRET }}
@@ -24,20 +24,31 @@ jobs:
         with:
           python-version: '3.6' 
 
-      # --- Security Scanning Stages ---
+      # --- Stage 1: Dependency Lock (Required by Doc) ---
+      - name: Dependency Lock Check
+        run: |
+          if [ ! -f requirements.txt ]; then 
+            echo "Error: requirements.txt is missing!"
+            exit 1 
+          fi
+          pip install -r requirements.txt 
+
+      # --- Stage 2: Lint + SAST ---
       - name: Run Lint (Flake8)
         run: pip install flake8 && flake8 . 
 
       - name: Run SAST (Bandit)
         run: pip install bandit && bandit -r . 
 
+      # --- Stage 3: Secret Scan ---
       - name: Secret Scan (Gitleaks)
         uses: gitleaks/gitleaks-action@v2 
 
+      # --- Stage 5: Dependency Scan ---
       - name: Dependency Scan (pip-audit)
         run: pip install pip-audit && pip-audit 
 
-      # --- Build Stage ---
+      # --- Stage 6: Build Stage ---
       - name: Build Docker Image
         run: |
           docker build \
@@ -45,6 +56,7 @@ jobs:
             --build-arg FLASK_SECRET=$FLASK_SECRET \
             -t showsecure-app:latest . 
 
+      # --- Stage 7: Image Scan ---
       - name: Image Scan (Trivy)
         uses: aquasecurity/trivy-action@master
         with:
@@ -52,7 +64,7 @@ jobs:
           severity: 'HIGH,CRITICAL'
           exit-code: '1' 
 
-      # --- Deployment Stage ---
+      # --- Stage 8: Deployment Stage ---
       - name: Deploy with Docker Compose
         if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
         run: |
