@@ -20,6 +20,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
+# --- Security & Environment Configuration ---
+# These ARGs allow GitHub Actions to pass secrets during the build process
+ARG DB_PASSWORD
+ARG FLASK_SECRET
+
+# These ENVs make the secrets available to your Python app at runtime
+ENV DB_PASSWORD=$DB_PASSWORD
+ENV FLASK_SECRET=$FLASK_SECRET
+# --------------------------------------------
+
 # Expose the port Flask runs on
 EXPOSE 5000
 
