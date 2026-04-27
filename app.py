@@ -1,5 +1,6 @@
 import mysql.connector,sys
 import datetime
+import os #for Pass read -- secret man. 
 from mysql.connector import Error
 from flask import Flask, request, jsonify, render_template
 from random import randint
