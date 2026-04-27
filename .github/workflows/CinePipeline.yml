@@ -70,9 +70,9 @@ jobs:
             -t showsecure-app:latest .
 
     
-  # --- Stage 7: Image Scan ---
+ # --- Stage 7: Image Scan ---
       - name: Image Scan (Trivy)
-        uses: aquasecurity/trivy-action@v0.29.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: 'showsecure-app:latest'
           severity: 'HIGH,CRITICAL'
