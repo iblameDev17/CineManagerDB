@@ -12,8 +12,17 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      APP_ENV: ${{ vars.APP_ENV || 'ci' }}
+      DB_HOST: ${{ vars.DB_HOST || '127.0.0.1' }}
+      DB_PORT: ${{ vars.DB_PORT || '3306' }}
+      DB_NAME: ${{ vars.DB_NAME || 'db_theatre' }}
+      DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      FLASK_SECRET: ${{ secrets.FLASK_SECRET }}
+      FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+      MANAGER_USERNAME: ${{ vars.MANAGER_USERNAME || 'manager' }}
+      MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+      CASHIER_USERNAME: ${{ vars.CASHIER_USERNAME || 'cashier' }}
+      CASHIER_PASSWORD: ${{ secrets.CASHIER_PASSWORD }}
 
     steps:
       - name: Checkout Code
@@ -62,10 +71,7 @@ jobs:
       # --- Stage 6: Build Stage ---
       - name: Build Docker Image
         run: |
-          docker build \
-            --build-arg DB_PASSWORD=$DB_PASSWORD \
-            --build-arg FLASK_SECRET=$FLASK_SECRET \
-            -t showsecure-app:latest .
+          docker build -t showsecure-app:latest .
 
       # --- Stage 7: Image Scan ---
       - name: Image Scan (Trivy)

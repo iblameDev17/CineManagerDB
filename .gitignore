@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+
+flask.out.log
+flask.err.log
+
+.venv/
+venv/
