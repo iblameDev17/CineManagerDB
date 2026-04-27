@@ -1,0 +1,6 @@
+Flask==1.1.2
+mysql-connector-python
+pytest
+flake8
+bandit
+pip-audit
