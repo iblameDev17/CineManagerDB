@@ -1,11 +1,18 @@
 import mysql.connector,sys
 import datetime
-import os #for Pass read -- secret man. 
+import os
 from mysql.connector import Error
 from flask import Flask, request, jsonify, render_template
 from random import randint
 
+try:
+	from dotenv import load_dotenv
+	load_dotenv()
+except ImportError:
+	pass
+
 app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET_KEY', os.getenv('FLASK_SECRET', 'dev-only-secret-key'))
 
 @app.route('/')
 def renderLoginPage():
@@ -18,12 +25,12 @@ def verifyAndRenderRespective():
 	password = request.form['password']
 
 	try:
-		if username == 'cashier' and password == 'cashier':
+		if username == os.getenv('CASHIER_USERNAME', 'cashier') and password == os.getenv('CASHIER_PASSWORD', 'cashier'):
 
 			res = runQuery('call delete_old()')
 			return render_template('cashier.html')
 
-		elif username == 'manager' and password == 'manager':
+		elif username == os.getenv('MANAGER_USERNAME', 'manager') and password == os.getenv('MANAGER_PASSWORD', 'manager'):
 
 			res = runQuery('call delete_old()')
 			return render_template('manager.html')
@@ -379,12 +386,14 @@ def setPrice():
 
 
 def runQuery(query):
+	db = None
 	try:
 		db = mysql.connector.connect(
-			host='localhost',
-			database='db_theatre',
-			user='root',
-			password='root123')
+			host=os.getenv('DB_HOST', 'localhost'),
+			port=int(os.getenv('DB_PORT', '3306')),
+			database=os.getenv('DB_NAME', 'db_theatre'),
+			user=os.getenv('DB_USER', 'root'),
+			password=os.getenv('DB_PASSWORD'))
 
 		if db.is_connected():
 			print("Connected to MySQL, running query: ", query)
@@ -404,7 +413,8 @@ def runQuery(query):
 		return e
 
 	finally:
-		db.close()
+		if db and db.is_connected():
+			db.close()
 
 	print("Couldn't connect to MySQL")
     #Couldn't connect to MySQL
