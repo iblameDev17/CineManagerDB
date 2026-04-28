@@ -55,10 +55,34 @@ jobs:
           pip install pip-audit
           pip-audit || true
 
-  # --- Job 3: Build and Container Scan ---
-  build-and-scan:
+  # --- Job 3: Unit Tests ---
+  # This fulfills Success Requirement No. 5: Automated unit tests 
+  unit-tests:
     runs-on: ubuntu-latest
     needs: dependency-scan
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
+
+      - name: Run Unit Tests
+        run: |
+          # This runs tests in the /tests folder without needing the app to be 'live'
+          pytest tests/
+
+  # --- Job 4: Build and Container Scan ---
+  build-and-scan:
+    runs-on: ubuntu-latest
+    needs: unit-tests
     env:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       FLASK_SECRET: ${{ secrets.FLASK_SECRET }}
@@ -80,7 +104,7 @@ jobs:
           severity: 'HIGH,CRITICAL'
           exit-code: '0'
 
-  # --- Job 4: Deployment ---
+  # --- Job 5: Deployment ---
   deploy:
     runs-on: ubuntu-latest
     needs: build-and-scan
@@ -101,4 +125,5 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
+          # Ensure your docker-compose.yml includes Nginx, Prometheus, and Grafana [cite: 47, 51]
           docker compose up -d
