@@ -1,5 +1,5 @@
 import pytest
-from app import app, db  # Assuming 'db' is your SQLAlchemy/MySQL instance
+from app import app  # Assuming 'db' is your SQLAlchemy/MySQL instance
 
 @pytest.fixture
 def client():
