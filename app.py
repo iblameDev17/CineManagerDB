@@ -12,7 +12,7 @@ except ImportError:
 	pass
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', os.getenv('FLASK_SECRET', 'dev-only-secret-key'))
+app.secret_key = os.getenv('FLASK_SECRET_KEY') or os.getenv('FLASK_SECRET')
 
 @app.route('/')
 def renderLoginPage():
@@ -25,12 +25,12 @@ def verifyAndRenderRespective():
 	password = request.form['password']
 
 	try:
-		if username == os.getenv('CASHIER_USERNAME', 'cashier') and password == os.getenv('CASHIER_PASSWORD', 'cashier'):
+		if username == os.getenv('CASHIER_USERNAME') and password == os.getenv('CASHIER_PASSWORD'):
 
 			res = runQuery('call delete_old()')
 			return render_template('cashier.html')
 
-		elif username == os.getenv('MANAGER_USERNAME', 'manager') and password == os.getenv('MANAGER_PASSWORD', 'manager'):
+		elif username == os.getenv('MANAGER_USERNAME') and password == os.getenv('MANAGER_PASSWORD'):
 
 			res = runQuery('call delete_old()')
 			return render_template('manager.html')
@@ -417,10 +417,8 @@ def runQuery(query):
 			db.close()
 
 	print("Couldn't connect to MySQL")
-    #Couldn't connect to MySQL
 	return None
 
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
- 
